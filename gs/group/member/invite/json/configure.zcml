@@ -6,6 +6,7 @@
     
   <browser:page name="gs-group-member-invite-json.html"
     for="gs.group.base.interfaces.IGSGroupMarker"
+    class=".api.InviteUserAPI"
     permission="zope2.ManageUsers"/>
 </configure>
 
