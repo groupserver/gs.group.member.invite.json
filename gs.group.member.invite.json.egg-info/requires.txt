@@ -1,0 +1,2 @@
+setuptools
+gs.group.member.invite.base
