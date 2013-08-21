@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
+import json
 from zope.cachedescriptors.property import Lazy
 from gs.group.base.form import GroupForm
 from zope.formlib import form as formlib
+from gs.group.member.invite.base.invitefields import InviteFields
+
+# Not sure which of the following are actually required
 from gs.profile.email.base.emailuser import EmailUser
 from Products.GSProfile import interfaces as profileSchemas
-from processor import CSVProcessor
+from processor import JSONProcessor
 # TODO Rename CSVProcessor to JSONProcessor
 # TODO Make JSONProcessor actually process JSON
-from columns import Columns
+#from columns import Columns
 from profilelist import ProfileList
 # TODO Determine if Columns and ProfileList should be in
 # gs.group.member.invite.base
@@ -16,17 +20,30 @@ from profilelist import ProfileList
 import logging
 log = logging.getLogger('gs.group.member.invite.json')
 
+PROFILE_CREATED = 0
+EXISTING_PROFILE_INVITED = 1
+EXISTING_MEMBER_IGNORED = 2
+VALIDATION_ERROR = 100
+
 
 class InviteUserAPI(GroupForm):
     # if this is set to true, we invite users. Otherwise we just add them.
     invite = True
 
+    def __init__(self, group, request):
+        super(InviteUserAPI, self).__init__(group, request)
+        self.inviteFields = InviteFields(group)
+
     @Lazy
     def globalConfiguration(self):
-        site_root = self.context.site_root()
-        assert hasattr(site_root, 'GlobalConfiguration'), \
-            'No GlobalConfiguration'
-        retval = site_root.GlobalConfiguration
+        retval = self.inviteFields.config
+        return retval
+
+    @Lazy
+    def form_fields(self):
+        retval = formlib.Fields(self.inviteFields.adminInterface,
+                                render_context=False)
+        assert retval
         return retval
 
     @property
@@ -132,85 +149,92 @@ the link below and accept this invitation.'''
         retval = m.format(self.groupInfo.name)
         return retval
 
-    # TODO Determine if this should be in gs.group.member.invite.base instead
-    @property
-    def preview_js(self):
-        msg = self.message.replace(' ', '%20').replace('\n', '%0A')
-        subj = self.subject.replace(' ', '%20')
-        uri = u'admin_invitation_message_preview.html?form.body=%s&amp;'\
-              'form.fromAddr=%s&amp;form.subject=%s' % \
-              (msg, self.fromAddr, subj)
-        js = u"window.open(%s, 'Message  Preview', "\
-            "'height=360,width=730,menubar=no,status=no,tolbar=no')" % uri
-        return js
-
     # TODO Make the form return JSON results, not HTML
     @formlib.action(label=u'Submit', failure='invite_user_failure')
     def invite_user_success(self, action, data):
         # TODO Access supplied JSON
         # TODO Make this mess actually handle an API request with provided JSON
         #      Also make it less of a mess
-        form = data
-        result = {}
-        result['form'] = form
-
-        if 'submitted' in form:
-            result['message'] = u''
-            result['error'] = False
-            # FIXME: Fix logging
-            #m = u'process_form: Adding users to %s (%s) on %s (%s) in'\
-            #  u' bulk for %s (%s)' % \
-            #  (self.groupInfo.name,   self.groupInfo.id,
-            #   self.siteInfo.get_name(),    self.siteInfo.get_id(),
-            #   self.adminInfo.name, self.adminInfo.id)
-            #log.info(m)
-
-            # Processing the CSV is done in three stages.
-            #   1. Process the columns.
-            columnProcessor = Columns(self.context, form)
-            r = columnProcessor.process()
-            result['message'] = u'\n'.join((result['message'], r['message']))
-            result['error'] = result['error'] \
-                if result['error'] else r['error']
-            columns = r['columns']
-            processor = CSVProcessor(self.context, self.request, form, columns,
-                                     self.subject, self.message,
-                                     self.fromAddr, self.profileSchema,
-                                     self.profileFields)
-            #   2. Parse the file.
-            if not result['error']:
-                r = processor.process()
-                result['message'] = u'\n'.join((result['message'],
-                                                r['message']))
-                result['error'] = result['error'] or r['error']
-                csvResults = r['csvResults']
-            #   3. Interpret the data.
-            if not result['error']:
-                try:
-                    r = processor.process_csv_results(csvResults,
-                                                      form['delivery'])
-                except UnicodeDecodeError, ude:
-                    result['error'] = True
-                    m = u'<p>Error reading the CSV file (did you select the '\
-                        u'correct file?): <span class="muted">{0}</p></p>'
-                    result['message'] = m.format(ude)
-                else:
-                    m = u'\n'.join((result['message'], r['message']))
-                    result['message'] = m
-                    result['error'] = result['error'] or r['error']
-
-            assert 'error' in result
-            assert type(result['error']) == bool
-            assert 'message' in result
-            assert type(result['message']) == unicode
-
-        assert type(result) == dict
-        assert 'form' in result
-        assert type(result['form']) == dict
-
+        # Zope's regular form validation system *should* take care of checking
+        # on columns and what not. So here we just have to pass data on to the
+        # actual invite code and package the result up as json
+        retdict = JSONProcessor.process(data)
+        retval = json.dumps(retdict)
         contentType = 'applicaton/json'
         self.request.response.setHeader('Content-Type', contentType)
-        return result
+        return retval
+
+        # Is anything beyond this comment needed?
+        #form = data
+        #result = {}
+        #result['form'] = form
+
+        #if 'submitted' in form:
+        #    result['message'] = u''
+        #    result['error'] = False
+        #    # FIXME: Fix logging
+        #    #m = u'process_form: Adding users to %s (%s) on %s (%s) in'\
+        #    #  u' bulk for %s (%s)' % \
+        #    #  (self.groupInfo.name,   self.groupInfo.id,
+        #    #   self.siteInfo.get_name(),    self.siteInfo.get_id(),
+        #    #   self.adminInfo.name, self.adminInfo.id)
+        #    #log.info(m)
+
+        #    # Processing the CSV is done in three stages.
+        #    #   1. Process the columns.
+        #    columnProcessor = Columns(self.context, form)
+        #    r = columnProcessor.process()
+        #    result['message'] = u'\n'.join((result['message'], r['message']))
+        #    result['error'] = result['error'] \
+        #        if result['error'] else r['error']
+        #    columns = r['columns']
+        #    processor = CSVProcessor(self.context, self.request, form, columns,
+        #                             self.subject, self.message,
+        #                             self.fromAddr, self.profileSchema,
+        #                             self.profileFields)
+        #    #   2. Parse the file.
+        #    if not result['error']:
+        #        r = processor.process()
+        #        result['message'] = u'\n'.join((result['message'],
+        #                                        r['message']))
+        #        result['error'] = result['error'] or r['error']
+        #        csvResults = r['csvResults']
+        #    #   3. Interpret the data.
+        #    if not result['error']:
+        #        try:
+        #            r = processor.process_csv_results(csvResults,
+        #                                              form['delivery'])
+        #        except UnicodeDecodeError, ude:
+        #            result['error'] = True
+        #            m = u'<p>Error reading the CSV file (did you select the '\
+        #                u'correct file?): <span class="muted">{0}</p></p>'
+        #            result['message'] = m.format(ude)
+        #        else:
+        #            m = u'\n'.join((result['message'], r['message']))
+        #            result['message'] = m
+        #            result['error'] = result['error'] or r['error']
+
+        #    assert 'error' in result
+        #    assert type(result['error']) == bool
+        #    assert 'message' in result
+        #    assert type(result['message']) == unicode
+
+        #assert type(result) == dict
+        #assert 'form' in result
+        #assert type(result['form']) == dict
 
     def invite_user_failure(self, action, data, errors):
-        pass
+        # Humm... what does errors give us? There *should* be ValidationErrors
+        # which contain messages we can send back to the user.
+        #
+        # Would we want to get fansier and return multiple status/message pairs
+        # for multiple errors? If so, we'd have to create status values for
+        # each type of validation error.
+        retdict = {
+            'status': VALIDATION_ERROR,
+            'message': [unicode(error) for error in errors]
+        }
+        retval = json.dumps(retdict)
+        contentType = 'application/json'
+        self.request.response.setHeader('Content-Type', contentType)
+        return retval
