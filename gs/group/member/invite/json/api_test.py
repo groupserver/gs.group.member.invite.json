@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 import json
 from zope.cachedescriptors.property import Lazy
-from gs.group.base.form import GroupForm
-from gs.group.base.page import GroupPage
 from zope.formlib import form as formlib
-from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
 from gs.group.member.invite.base.invitefields import InviteFields
-from interfaces import IApiTest
+from group_api_json_form import GroupApiJsonForm
 
-import pprint
 import logging
 log = logging.getLogger('gs.group.member.invite.json')
 
@@ -18,15 +14,12 @@ EXISTING_MEMBER_IGNORED = 2
 VALIDATION_ERROR = 100
 
 
-class InviteUserAPI(GroupForm):
-    pageTemplateFileName = 'browser/templates/invite_doc.pt'           
-    template = ZopeTwoPageTemplateFile(pageTemplateFileName)
-    # if this is set to true, we invite users. Otherwise we just add them.
-    invite = True
+class InviteUserAPI(GroupApiJsonForm):
+    aboutEndpoint = u'POST data to this URL to invite a member to join this '\
+        + 'group.'
 
     def __init__(self, group, request):
         super(InviteUserAPI, self).__init__(group, request)
-        self.prefix = ''
         self.inviteFields = InviteFields(group)
 
     @Lazy
@@ -34,52 +27,33 @@ class InviteUserAPI(GroupForm):
         retval = self.inviteFields.config
         return retval
 
-#    @Lazy
-#    def form_fields(self):
-#        retval = formlib.Fields(IApiTest, render_context=False)
-#        assert retval
-#        return retval
     @Lazy
-    def form_fields(self):
-        retval = formlib.Fields(self.inviteFields.adminInterface,
-                                render_context=False)
+    def interface(self):
+        retval = self.inviteFields.adminInterface
         assert retval
         return retval
 
-    # TODO Make the form return JSON results, not HTML
-    @formlib.action(label=u'Submit', prefix='', name='fn', 
-                    failure='invite_user_failure')
+    @Lazy
+    def form_fields(self):
+        retval = formlib.Fields(self.interface, render_context=False)
+        assert retval
+        return retval
+
+    @formlib.action(label=u'Submit', prefix='', failure='invite_user_failure')
     def invite_user_success(self, action, data):
-        # TODO Access supplied JSON
         # TODO Make this mess actually handle an API request with provided JSON
         #      Also make it less of a mess
         # Zope's regular form validation system *should* take care of checking
         # on columns and what not. So here we just have to pass data on to the
         # actual invite code and package the result up as json
-        log.info('Success')
-        log.info(pprint.pformat(data, indent=3))
-        # retdict = JSONProcessor.process(data)
-        retval = json.dumps(data)
+        retval = json.dumps(data, indent=4)
         return retval
 
     def invite_user_failure(self, action, data, errors):
-        # Humm... what does errors give us? There *should* be ValidationErrors
-        # which contain messages we can send back to the user.
-        #
-        # Would we want to get fansier and return multiple status/message pairs
-        # for multiple errors? If so, we'd have to create status values for
-        # each type of validation error.
-        log.info('Failure')
-        log.info(pprint.pformat(data, indent=3))
-        log.info(pprint.pformat(errors, indent=3))
+        # TODO Move this to the parent class
         retdict = {
             'status': VALIDATION_ERROR,
             'message': [unicode(error) for error in errors]
         }
-        retval = json.dumps(retdict)
-        return retval
-
-    def __call__(self, ignore_request=False):
-        retval = super(InviteUserAPI, self).__call__()
-        self.request.response.setHeader('Content-Type', 'application/json')
+        retval = json.dumps(retdict, indent=4)
         return retval
