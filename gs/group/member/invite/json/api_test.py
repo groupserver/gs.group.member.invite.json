@@ -11,7 +11,6 @@ log = logging.getLogger('gs.group.member.invite.json')
 PROFILE_CREATED = 0
 EXISTING_PROFILE_INVITED = 1
 EXISTING_MEMBER_IGNORED = 2
-VALIDATION_ERROR = 100
 
 
 class InviteUserAPI(GroupApiJsonForm):
@@ -50,10 +49,4 @@ class InviteUserAPI(GroupApiJsonForm):
         return retval
 
     def invite_user_failure(self, action, data, errors):
-        # TODO Move this to the parent class
-        retdict = {
-            'status': VALIDATION_ERROR,
-            'message': [unicode(error) for error in errors]
-        }
-        retval = json.dumps(retdict, indent=4)
-        return retval
+        return self.build_error_response(action, data, errors)

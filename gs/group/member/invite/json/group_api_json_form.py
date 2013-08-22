@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 from zope.cachedescriptors.property import Lazy
 from gs.group.base.form import GroupForm
 from zope.schema import getFieldsInOrder
@@ -6,9 +7,7 @@ from zope.schema._bootstrapinterfaces import RequiredMissing
 from zope.formlib.interfaces import WidgetInputError
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
 
-from logging import getLogger
-import pprint
-log = getLogger('GroupApiJsonForm')
+VALIDATION_ERROR = 100
 
 
 class GroupApiJsonForm(GroupForm):
@@ -46,6 +45,14 @@ class GroupApiJsonForm(GroupForm):
                           missing_required_param['value'].title,
                           RequiredMissing(missing_required_param['name'])))
 
+        return retval
+
+    def build_error_response(self, action, data, errors):
+        retdict = {
+            'status': VALIDATION_ERROR,
+            'message': [unicode(error) for error in errors]
+        }
+        retval = json.dumps(retdict, indent=4)
         return retval
 
     def __call__(self, ignore_request=False):
