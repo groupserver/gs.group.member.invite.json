@@ -4,6 +4,7 @@ from zope.cachedescriptors.property import Lazy
 from gs.group.base.form import GroupForm
 from gs.group.base.page import GroupPage
 from zope.formlib import form as formlib
+from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
 from gs.group.member.invite.base.invitefields import InviteFields
 from interfaces import IApiTest
 
@@ -18,6 +19,8 @@ VALIDATION_ERROR = 100
 
 
 class InviteUserAPI(GroupForm):
+    pageTemplateFileName = 'browser/templates/invite_doc.pt'           
+    template = ZopeTwoPageTemplateFile(pageTemplateFileName)
     # if this is set to true, we invite users. Otherwise we just add them.
     invite = True
 
@@ -57,8 +60,6 @@ class InviteUserAPI(GroupForm):
         log.info(pprint.pformat(data, indent=3))
         # retdict = JSONProcessor.process(data)
         retval = json.dumps(data)
-        contentType = 'applicaton/json'
-        self.request.response.setHeader('Content-Type', contentType)
         return retval
 
     def invite_user_failure(self, action, data, errors):
@@ -76,13 +77,9 @@ class InviteUserAPI(GroupForm):
             'message': [unicode(error) for error in errors]
         }
         retval = json.dumps(retdict)
-        contentType = 'application/json'
-        self.request.response.setHeader('Content-Type', contentType)
         return retval
 
-#    def __call__(self, ignore_request=False):
-#        log.info('Called!')
-#        log.info(pprint.pformat(self.request.__dict__, indent=3))
-#        contentType = 'application/json'
-#        self.request.response.setHeader('Content-Type', contentType)
-#        return 'Hello'
+    def __call__(self, ignore_request=False):
+        retval = super(InviteUserAPI, self).__call__()
+        self.request.response.setHeader('Content-Type', 'application/json')
+        return retval
