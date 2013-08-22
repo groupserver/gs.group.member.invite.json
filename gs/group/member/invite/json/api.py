@@ -8,7 +8,7 @@ from gs.group.member.invite.base.invitefields import InviteFields
 # Not sure which of the following are actually required
 from gs.profile.email.base.emailuser import EmailUser
 from Products.GSProfile import interfaces as profileSchemas
-from processor import JSONProcessor
+#from processor import JSONProcessor
 # TODO Rename CSVProcessor to JSONProcessor
 # TODO Make JSONProcessor actually process JSON
 #from columns import Columns
@@ -160,8 +160,6 @@ the link below and accept this invitation.'''
         # actual invite code and package the result up as json
         retdict = JSONProcessor.process(data)
         retval = json.dumps(retdict)
-        contentType = 'applicaton/json'
-        self.request.response.setHeader('Content-Type', contentType)
         return retval
 
         # Is anything beyond this comment needed?
@@ -235,6 +233,9 @@ the link below and accept this invitation.'''
             'message': [unicode(error) for error in errors]
         }
         retval = json.dumps(retdict)
-        contentType = 'application/json'
-        self.request.response.setHeader('Content-Type', contentType)
+        return retval
+
+    def __call__(self):
+        retval = super(InviteUserAPI, self).__call__()
+        self.request.response.setHeader('Content-Type', 'application/json')
         return retval
