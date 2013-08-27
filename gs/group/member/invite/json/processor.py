@@ -1,28 +1,163 @@
 # -*- coding: utf-8 -*-
-from cgi import escape
-from csv import Error as CSVError
-from zope.cachedescriptors.property import Lazy
-from zope.component import createObject
-from zope.formlib import form as formlib
-from gs.content.form.utils import enforce_schema
-from gs.group.member.base import user_member_of_group
-from gs.group.member.join.interfaces import IGSJoiningUser
-from gs.group.member.invite.base.audit import Auditor, INVITE_NEW_USER, \
-                                      INVITE_OLD_USER, INVITE_EXISTING_MEMBER
-from gs.group.member.invite.base.inviter import Inviter
-from gs.group.member.add.audit import ADD_NEW_USER, ADD_OLD_USER, \
-    Auditor as AddAuditor
-from gs.profile.email.base.emailaddress import NewEmailAddress, \
-    NotAValidEmailAddress, DisposableEmailAddressNotAllowed, \
-    EmailAddressExists
+from email.utils import parseaddr
+from zope.formlib import form
 from Products.CustomUserFolder.interfaces import IGSUserInfo
-from Products.CustomUserFolder.userinfo import userInfo_to_anchor
+from Products.XWFCore.XWFUtils import get_the_actual_instance_from_zope
 from Products.GSProfile.utils import create_user_from_email
-from Products.GSProfile.interfaceCoreProfile import deliveryVocab
+from gs.content.form.utils import enforce_schema
+from gs.profile.email.base.emailaddress import NewEmailAddress, \
+    EmailAddressExists
+from gs.group.member.base import user_member_of_group
+from gs.group.member.invite.base.audit import Auditor, INVITE_NEW_USER, \
+    INVITE_OLD_USER, INVITE_EXISTING_MEMBER
+from gs.group.member.base.inviter import Inviter
+from gs.group.member.base.utils import set_digest
+
+
+class InviteProcessor(object):
+    """
+        Class that does the technical work of inviting a user based on data
+        provided by another user.
+    """
+
+    def __init__(self, context, groupInfo, form_fields, inviteFields):
+        """
+            Input: context - Zope context object. Should be a Group context.
+                   groupInfo - GroupInfo object for the Group that a user is
+                               being invited to.
+                   form_fields - zope.formlib.Fields used by the *Form that is
+                                 creating an instance of InviteProcessor
+                   inviteFields - InviteFields object that governs what data is
+                                  required to process the invite.
+        """
+        self.context = context
+        self.groupInfo = groupInfo
+        self.form_fields = form_fields
+        self.inviteFields = inviteFields
+
+    def process(self, data):
+        """
+            Attempt to invite a user to join a group based on the provided
+            data.
+
+            Input: data - A dict of data submitted to a *Form, assumed to be
+                          data used to invite a person to a group
+            Output: If successful, a status code indicating the result of
+                    processing the invite.
+        """
+        userInfo = None
+
+        acl_users = self.context.acl_users
+        toAddr = data['toAddr'].strip()
+        addrName, addr = parseaddr(toAddr)
+
+        emailChecker = NewEmailAddress(title=u'Email')
+        emailChecker.context = self.context
+        #e = u'<code class="email">%s</code>' % addr
+        #g = groupInfo_to_anchor(self.groupInfo)
+
+        try:
+            emailChecker.validate(toAddr)  # Can handle a full address
+        except EmailAddressExists:
+            user = acl_users.get_userByEmail(addr)  # Cannot
+            assert user, 'User for address <%s> not found' % addr
+            userInfo = IGSUserInfo(user)
+            #u = userInfo_to_anchor(userInfo)
+            auditor, inviter = self.get_auditor_inviter(userInfo)
+            if user_member_of_group(user, self.groupInfo):
+                auditor.info(INVITE_EXISTING_MEMBER, addr)
+                # TODO Have the method return a status that directs *Form
+                # classes on the feedback to provide
+                #m = u'<li>The person with the email address {0} &#8213; {1} '\
+                #    u'&#8213; is already a member of {2}.</li>\n'\
+                #    u'<li>No changes to the profile of {1} have been made.</li>'
+                #self.status = m.format(e, u, g)
+            else:
+                # TODO Have the method return a status that directs *Form
+                # classes on the feedback to provide
+                #m = u'<li>Inviting the existing person with the email address '\
+                #    u'{0} &#8213; {1} &#8213; to join {2}.</li>'
+                #self.status = m.format(e, u, g)
+                inviteId = inviter.create_invitation(data, False)
+                auditor.info(INVITE_OLD_USER, addr)
+                inviter.send_notification(data['subject'],
+                                          data['message'],
+                                          inviteId,
+                                          data['fromAddr'])  # No to-addr
+                self.set_delivery(userInfo, data['delivery'])
+        else:
+            # Email address does not exist, but it is a legitimate address
+            user = create_user_from_email(self.context, toAddr)
+            userInfo = IGSUserInfo(user)
+            self.add_profile_attributes(userInfo, data)
+            auditor, inviter = self.get_auditor_inviter(userInfo)
+            inviteId = inviter.create_invitation(data, True)
+            auditor.info(INVITE_NEW_USER, addr)
+            inviter.send_notification(data['subject'], data['message'],
+                                      inviteId, data['fromAddr'],
+                                      addr)  # Note the to-addr
+            self.set_delivery(userInfo, data['delivery'])
+            #u = userInfo_to_anchor(userInfo)
+            # TODO Have the method return a status that directs *Form
+            # classes on the feedback to provide
+            #m = u'<li>A profile for {0} has been created, and given the '\
+            #    u'email address {1}.</li>\n'\
+            #    u'<li>{0} has been sent an invitation to join {2}.</li>'
+            #self.status = m.format(u, e, g)
+        #self.status = '<ul>\n{0}\n</ul>'.format(self.status)
+        assert user, 'User not created or found'
+        #assert self.status
+        # TODO Have the method return a status that directs *Form
+        # classes on the feedback to provide
+        return userInfo
+
+    def add_profile_attributes(self, userInfo, data):
+        enforce_schema(userInfo.user, self.inviteFields.profileInterface)
+        fields = self.form_fields.select(*self.inviteFields.profileFieldIds)
+        for field in fields:
+            field.interface = self.inviteFields.profileInterface
+
+        form.applyChanges(userInfo.user, fields, data)
+        # wpb: Why not use self.set_delivery?
+        set_digest(userInfo, self.groupInfo, data)
+
+    def get_auditor_inviter(self, userInfo):
+        """
+            Retrives the Inviter and Auditor objects that will be used to
+            invite the user.
+
+            Input: userInfo - A UserInfo instance of the user who will be
+                              invited.
+            Output: A tuple - (Auditor, Inviter)
+        """
+        ctx = get_the_actual_instance_from_zope(self.context)
+        inviter = Inviter(ctx, self.request, userInfo, self.adminInfo,
+                          self.siteInfo, self.groupInfo)
+        auditor = Auditor(self.siteInfo, self.groupInfo,
+                          self.adminInfo, userInfo)
+        return (auditor, inviter)
+
+    def set_delivery(self, userInfo, delivery):
+        """
+            Convenience method for setting the delivery method of a user in a
+            group.
+
+            Input: userInfo - A UserInfo instance of the user to set delivery
+                              for.
+                   delivery - A string indicating the desired delivery setting.
+                              Allowed values are 'email', 'digest', and 'web'.
+        """
+        if delivery == 'email':
+            # --=mpj17=-- The default is one email per post
+            pass
+        elif delivery == 'digest':
+            userInfo.user.set_enableDigestByKey(self.groupInfo.id)
+        elif delivery == 'web':
+            userInfo.user.set_disableDeliveryByKey(self.groupInfo.id)
 
 
 class JSONPRocessor(object):
-    
+ 
     def process(self, data):
         # TODO this method should behave like CSVProcessor.process_row
         # TODO get the status values from some authorative third party
