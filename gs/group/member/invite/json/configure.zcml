@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <configure xmlns="http://namespaces.zope.org/zope"
   xmlns:browser="http://namespaces.zope.org/browser"
-  xmlns:five="http://namespaces.zope.org/five">
+  xmlns:five="http://namespaces.zope.org/five"
+  xmlns:z3c="http://namespaces.zope.org/z3c">
 
     
   <browser:page name="gs-group-member-invite-json.html"
     for="gs.group.base.interfaces.IGSGroupMarker"
     class=".api_test.InviteUserAPI"
     permission="zope2.View"/>
+
+  <z3c:jsonrpc
+    for="gs.group.base.interfaces.IGSGroupMarker"
+    class=".api_rcp_test.InviteUserAPI"
+    permission="zope2.View"
+    methods="gs_group_member_invite_json_invite"
+    />
 </configure>
 

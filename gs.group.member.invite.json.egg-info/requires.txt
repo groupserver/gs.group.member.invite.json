@@ -1,2 +1,3 @@
 setuptools
+z3c.jsonrpc
 gs.group.member.invite.base
