@@ -14,7 +14,7 @@ EXISTING_MEMBER_IGNORED = 2
 
 
 class InviteUserAPI(GroupApiJsonForm):
-    aboutEndpoint = u'POST data to this URL to invite a member to join this '\
+    label = u'POST data to this URL to invite a member to join this '\
         + 'group.'
 
     def __init__(self, group, request):

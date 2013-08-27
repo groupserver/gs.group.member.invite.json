@@ -1,5 +1,5 @@
 {
-    "message": "<tal:block replace="view/aboutEndpoint"></tal:block>",
+    <tal:block condition="view/label">"message": "<tal:block replace="view/label"></tal:block>",</tal:block>
     "arguments": {<tal:block repeat="parameter view/endpoint_parameters">
         "<tal:block replace="parameter/name">The parameter name</tal:block>": {
             "Description": "<tal:block replace="parameter/value/description">Argument Description</tal:block>",
