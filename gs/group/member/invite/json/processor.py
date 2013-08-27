@@ -42,8 +42,9 @@ class InviteProcessor(object):
 
             Input: data - A dict of data submitted to a *Form, assumed to be
                           data used to invite a person to a group
-            Output: If successful, a status code indicating the result of
-                    processing the invite.
+            Output: If successful, a tuple - (status_code, userInfo) -
+                    containing a status code indicating the result of
+                    processing the invite and an IGSUserInfo instance
         """
         userInfo = None
 
@@ -62,22 +63,11 @@ class InviteProcessor(object):
             user = acl_users.get_userByEmail(addr)  # Cannot
             assert user, 'User for address <%s> not found' % addr
             userInfo = IGSUserInfo(user)
-            #u = userInfo_to_anchor(userInfo)
             auditor, inviter = self.get_auditor_inviter(userInfo)
             if user_member_of_group(user, self.groupInfo):
                 auditor.info(INVITE_EXISTING_MEMBER, addr)
-                # TODO Have the method return a status that directs *Form
-                # classes on the feedback to provide
-                #m = u'<li>The person with the email address {0} &#8213; {1} '\
-                #    u'&#8213; is already a member of {2}.</li>\n'\
-                #    u'<li>No changes to the profile of {1} have been made.</li>'
-                #self.status = m.format(e, u, g)
+                status_code = INVITE_EXISTING_MEMBER
             else:
-                # TODO Have the method return a status that directs *Form
-                # classes on the feedback to provide
-                #m = u'<li>Inviting the existing person with the email address '\
-                #    u'{0} &#8213; {1} &#8213; to join {2}.</li>'
-                #self.status = m.format(e, u, g)
                 inviteId = inviter.create_invitation(data, False)
                 auditor.info(INVITE_OLD_USER, addr)
                 inviter.send_notification(data['subject'],
@@ -85,6 +75,7 @@ class InviteProcessor(object):
                                           inviteId,
                                           data['fromAddr'])  # No to-addr
                 self.set_delivery(userInfo, data['delivery'])
+                status_code = INVITE_OLD_USER
         else:
             # Email address does not exist, but it is a legitimate address
             user = create_user_from_email(self.context, toAddr)
@@ -97,19 +88,11 @@ class InviteProcessor(object):
                                       inviteId, data['fromAddr'],
                                       addr)  # Note the to-addr
             self.set_delivery(userInfo, data['delivery'])
-            #u = userInfo_to_anchor(userInfo)
-            # TODO Have the method return a status that directs *Form
-            # classes on the feedback to provide
-            #m = u'<li>A profile for {0} has been created, and given the '\
-            #    u'email address {1}.</li>\n'\
-            #    u'<li>{0} has been sent an invitation to join {2}.</li>'
-            #self.status = m.format(u, e, g)
-        #self.status = '<ul>\n{0}\n</ul>'.format(self.status)
+            status_code = INVITE_NEW_USER
+
+        assert status_code
         assert user, 'User not created or found'
-        #assert self.status
-        # TODO Have the method return a status that directs *Form
-        # classes on the feedback to provide
-        return userInfo
+        return (status_code, userInfo)
 
     def add_profile_attributes(self, userInfo, data):
         enforce_schema(userInfo.user, self.inviteFields.profileInterface)

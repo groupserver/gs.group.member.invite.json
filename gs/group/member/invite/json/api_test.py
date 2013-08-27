@@ -3,6 +3,9 @@ import json
 from zope.cachedescriptors.property import Lazy
 from zope.formlib import form as formlib
 from gs.group.member.invite.base.invitefields import InviteFields
+from gs.group.member.invite.base.audit import INVITE_NEW_USER, \
+    INVITE_OLD_USER, INVITE_EXISTING_MEMBER
+from processor import InviteProcessor
 from group_api_json_form import GroupApiJsonForm
 
 import logging
@@ -45,7 +48,40 @@ class InviteUserAPI(GroupApiJsonForm):
         # Zope's regular form validation system *should* take care of checking
         # on columns and what not. So here we just have to pass data on to the
         # actual invite code and package the result up as json
-        retval = json.dumps(data, indent=4)
+        inviteProcessor = InviteProcessor(self.context, self.groupInfo,
+                                          self.form_fields, self.inviteFields)
+        result, userInfo = inviteProcessor.process(data)
+        retval = {}
+        # TODO Include a URL to the user and group in results
+        if result == INVITE_NEW_USER:
+            retval['status'] = 1
+            m = u'A profile for {0} has been created, and given the '\
+                u'email address {1}.\n'\
+                u'{0} has been sent an invitation to join {2}.'
+            retval['message'] = m.format(data['email'], 
+                                         userInfo.getProperty('fn',''), 
+                                         self.groupInfo.title)
+        elif result == INVITE_OLD_USER:
+            retval['status'] = 2
+            m = u'Inviting the existing person with the email address '\
+                    u'{0} - {1} - to join {2}.</li>'
+            retval['message'] = m.format(data['email'], 
+                                         userInfo.getProperty('fn',''),
+                                         self.groupInfo.title)
+        elif result == INVITE_EXISTING_MEMBER:
+            retval['status'] = 3
+            m = u'The person with the email address {0} - {1} -'\
+                u' is already a member of {2}.\n'\
+                u'No changes to the profile of {1} have been made.'
+            retval['message'] = m.format(data['email'], 
+                                         userInfo.getProperty('fn',''), 
+                                         self.groupInfo.title)
+        else:
+            # What the hell happened?
+            retval['status'] = 100
+            # TODO Write a more meaningful message
+
+        retval = json.dumps(retval, indent=4)
         return retval
 
     def invite_user_failure(self, action, data, errors):
