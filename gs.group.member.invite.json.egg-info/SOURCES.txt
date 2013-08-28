@@ -27,7 +27,6 @@ gs/group/member/invite/json/api_rpc_test.py
 gs/group/member/invite/json/api_rpc_test.pyc
 gs/group/member/invite/json/api_test.py
 gs/group/member/invite/json/api_test.pyc
-gs/group/member/invite/json/api_test.py~
 gs/group/member/invite/json/columns.py
 gs/group/member/invite/json/configure.zcml
 gs/group/member/invite/json/group_api_json_form.py

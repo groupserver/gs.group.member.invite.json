@@ -44,13 +44,14 @@ class InviteUserAPI(publisher.MethodPublisher):
         assert retval
         return retval
 
-    def gs_group_member_invite_json_invite(self):
+    def invite(self):
         # TODO Make this mess actually handle an API request with provided JSON
         #      Also make it less of a mess
         # Zope's regular form validation system *should* take care of checking
         # on columns and what not. So here we just have to pass data on to the
         # actual invite code and package the result up as json
         logging.info(pprint.pformat(self.request.form, indent=2))
+        result = 0
         # TODO Call some validation method
         #inviteProcessor = InviteProcessor(self.context, self.groupInfo,
         #                                  self.form_fields, self.inviteFields)

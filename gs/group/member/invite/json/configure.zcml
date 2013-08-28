@@ -16,7 +16,7 @@
     for="gs.group.base.interfaces.IGSGroupMarker"
     class=".api_rpc_test.InviteUserAPI"
     permission="zope2.View"
-    methods="gs_group_member_invite_json_invite"
+    methods="invite"
     />
 </configure>
 
