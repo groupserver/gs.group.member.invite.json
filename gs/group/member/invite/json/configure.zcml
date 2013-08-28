@@ -4,6 +4,8 @@
   xmlns:five="http://namespaces.zope.org/five"
   xmlns:z3c="http://namespaces.zope.org/z3c">
 
+  <include package="zope.app.publication" file="meta.zcml" />
+  <include package="z3c.jsonrpc" file="meta.zcml" />
     
   <browser:page name="gs-group-member-invite-json.html"
     for="gs.group.base.interfaces.IGSGroupMarker"
@@ -12,7 +14,7 @@
 
   <z3c:jsonrpc
     for="gs.group.base.interfaces.IGSGroupMarker"
-    class=".api_rcp_test.InviteUserAPI"
+    class=".api_rpc_test.InviteUserAPI"
     permission="zope2.View"
     methods="gs_group_member_invite_json_invite"
     />
