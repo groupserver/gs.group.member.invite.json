@@ -20,18 +20,27 @@ class InviteProcessor(object):
         provided by another user.
     """
 
-    def __init__(self, context, groupInfo, form_fields, inviteFields):
+    def __init__(self, context, request, siteInfo, groupInfo, invitingUserInfo, 
+                 form_fields, inviteFields):
         """
             Input: context - Zope context object. Should be a Group context.
+                   request - Zope request that is causing this invitation.
+                   siteInfo - SiteInfo object for the Site that a user is
+                              joining a group in.
                    groupInfo - GroupInfo object for the Group that a user is
                                being invited to.
+                   invitingUserInfo - UserInfo object representing the user who
+                                      is doing the inviting
                    form_fields - zope.formlib.Fields used by the *Form that is
                                  creating an instance of InviteProcessor
                    inviteFields - InviteFields object that governs what data is
                                   required to process the invite.
         """
         self.context = context
+        self.request = request
+        self.siteInfo = siteInfo
         self.groupInfo = groupInfo
+        self.invitingUserInfo = invitingUserInfo
         self.form_fields = form_fields
         self.inviteFields = inviteFields
 
@@ -54,8 +63,6 @@ class InviteProcessor(object):
 
         emailChecker = NewEmailAddress(title=u'Email')
         emailChecker.context = self.context
-        #e = u'<code class="email">%s</code>' % addr
-        #g = groupInfo_to_anchor(self.groupInfo)
 
         try:
             emailChecker.validate(toAddr)  # Can handle a full address
@@ -114,10 +121,10 @@ class InviteProcessor(object):
             Output: A tuple - (Auditor, Inviter)
         """
         ctx = get_the_actual_instance_from_zope(self.context)
-        inviter = Inviter(ctx, self.request, userInfo, self.adminInfo,
+        inviter = Inviter(ctx, self.request, userInfo, self.invitingUserInfo,
                           self.siteInfo, self.groupInfo)
         auditor = Auditor(self.siteInfo, self.groupInfo,
-                          self.adminInfo, userInfo)
+                          self.invitingUserInfo, userInfo)
         return (auditor, inviter)
 
     def set_delivery(self, userInfo, delivery):
