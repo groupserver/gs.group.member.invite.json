@@ -2,11 +2,11 @@
 import json
 from zope.cachedescriptors.property import Lazy
 from zope.formlib import form as formlib
+from gs.content.form.api.json.group_endpoint import GroupEndpoint
 from gs.group.member.invite.base.invitefields import InviteFields
 from gs.group.member.invite.base.audit import INVITE_NEW_USER, \
     INVITE_OLD_USER, INVITE_EXISTING_MEMBER
 from processor import InviteProcessor
-from group_api_json_form import GroupApiJsonForm
 
 import logging
 log = logging.getLogger('gs.group.member.invite.json')
@@ -16,7 +16,7 @@ EXISTING_PROFILE_INVITED = 1
 EXISTING_MEMBER_IGNORED = 2
 
 
-class InviteUserAPI(GroupApiJsonForm):
+class InviteUserAPI(GroupEndpoint):
     label = u'POST data to this URL to invite a member to join this '\
         + 'group.'
 
@@ -30,14 +30,9 @@ class InviteUserAPI(GroupApiJsonForm):
         return retval
 
     @Lazy
-    def interface(self):
-        retval = self.inviteFields.adminInterface
-        assert retval
-        return retval
-
-    @Lazy
     def form_fields(self):
-        retval = formlib.Fields(self.interface, render_context=False)
+        retval = formlib.Fields(self.inviteFields.adminInterface,
+                                render_context=False)
         assert retval
         return retval
 
@@ -58,23 +53,23 @@ class InviteUserAPI(GroupApiJsonForm):
             m = u'A profile for {0} has been created, and given the '\
                 u'email address {1}.\n'\
                 u'{0} has been sent an invitation to join {2}.'
-            retval['message'] = m.format(data['email'], 
-                                         userInfo.getProperty('fn',''), 
+            retval['message'] = m.format(data['email'],
+                                         userInfo.getProperty('fn', ''),
                                          self.groupInfo.title)
         elif result == INVITE_OLD_USER:
             retval['status'] = 2
             m = u'Inviting the existing person with the email address '\
-                    u'{0} - {1} - to join {2}.</li>'
-            retval['message'] = m.format(data['email'], 
-                                         userInfo.getProperty('fn',''),
+                u'{0} - {1} - to join {2}.</li>'
+            retval['message'] = m.format(data['email'],
+                                         userInfo.getProperty('fn', ''),
                                          self.groupInfo.title)
         elif result == INVITE_EXISTING_MEMBER:
             retval['status'] = 3
             m = u'The person with the email address {0} - {1} -'\
                 u' is already a member of {2}.\n'\
                 u'No changes to the profile of {1} have been made.'
-            retval['message'] = m.format(data['email'], 
-                                         userInfo.getProperty('fn',''), 
+            retval['message'] = m.format(data['email'],
+                                         userInfo.getProperty('fn', ''),
                                          self.groupInfo.title)
         else:
             # What the hell happened?
