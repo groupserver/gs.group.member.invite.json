@@ -85,7 +85,3 @@ class InviteUserAPI(GroupEndpoint):
 
     def invite_user_failure(self, action, data, errors):
         return self.build_error_response(action, data, errors)
-
-    def __call__(self):
-        log.info(pprint.pformat(self.loggedInUser, indent=2))
-        return super(InviteUserAPI, self).__call__()
