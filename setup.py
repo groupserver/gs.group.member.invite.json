@@ -33,7 +33,6 @@ setup(name='gs.group.member.invite.json',
     zip_safe=True,
     install_requires=[
         'setuptools',
-        'z3c.jsonrpc',
         'gs.group.member.invite.base',
         # -*- Extra requirements: -*-
     ],

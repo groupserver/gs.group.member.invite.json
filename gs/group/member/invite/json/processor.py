@@ -10,8 +10,8 @@ from gs.profile.email.base.emailaddress import NewEmailAddress, \
 from gs.group.member.base import user_member_of_group
 from gs.group.member.invite.base.audit import Auditor, INVITE_NEW_USER, \
     INVITE_OLD_USER, INVITE_EXISTING_MEMBER
-from gs.group.member.invite.base.inviter import Inviter
-from gs.group.member.invite.base.utils import set_digest
+from gs.group.member.base.inviter import Inviter
+from gs.group.member.base.utils import set_digest
 
 
 class InviteProcessor(object):
