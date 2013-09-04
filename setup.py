@@ -11,7 +11,7 @@ setup(name='gs.group.member.invite.json',
     long_description=open("README.txt").read() + "\n" +
                       open(os.path.join("docs", "HISTORY.txt")).read(),
     classifiers=[
-      "Development Status :: 1 - Planning",
+      "Development Status :: 4 - Beta",
       "Environment :: Web Environment",
       "Framework :: Zope2",
       "Intended Audience :: Developers",
