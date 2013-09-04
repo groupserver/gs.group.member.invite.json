@@ -8,7 +8,6 @@ gs/__init__.py
 gs/__init__.pyc
 gs.group.member.invite.json.egg-info/PKG-INFO
 gs.group.member.invite.json.egg-info/SOURCES.txt
-gs.group.member.invite.json.egg-info/SOURCES.txt.orig
 gs.group.member.invite.json.egg-info/dependency_links.txt
 gs.group.member.invite.json.egg-info/entry_points.txt
 gs.group.member.invite.json.egg-info/namespace_packages.txt
@@ -24,13 +23,8 @@ gs/group/member/invite/__init__.pyc
 gs/group/member/invite/json/__init__.py
 gs/group/member/invite/json/__init__.pyc
 gs/group/member/invite/json/api.py
-gs/group/member/invite/json/api_test.py
-gs/group/member/invite/json/api_test.pyc
-gs/group/member/invite/json/columns.py
+gs/group/member/invite/json/api.pyc
 gs/group/member/invite/json/configure.zcml
-gs/group/member/invite/json/interfaces.py
-gs/group/member/invite/json/interfaces.pyc
 gs/group/member/invite/json/processor.py
 gs/group/member/invite/json/processor.pyc
-gs/group/member/invite/json/profilelist.py
-gs/group/member/invite/json/browser/templates/api_json_about.pt
+gs/group/member/invite/json/profilelist.pyc

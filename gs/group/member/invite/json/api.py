@@ -9,7 +9,7 @@ from Products.CustomUserFolder.userinfo import userInfo_to_anchor
 from gs.group.member.invite.base.invitefields import InviteFields
 from gs.group.member.invite.base.audit import INVITE_NEW_USER, \
     INVITE_OLD_USER, INVITE_EXISTING_MEMBER
-from processor import InviteProcessor
+from gs.group.member.invite.base.processor import InviteProcessor
 
 PROFILE_CREATED = 0
 EXISTING_PROFILE_INVITED = 1
