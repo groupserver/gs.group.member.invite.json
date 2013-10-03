@@ -25,6 +25,3 @@ gs/group/member/invite/json/__init__.pyc
 gs/group/member/invite/json/api.py
 gs/group/member/invite/json/api.pyc
 gs/group/member/invite/json/configure.zcml
-gs/group/member/invite/json/processor.py
-gs/group/member/invite/json/processor.pyc
-gs/group/member/invite/json/profilelist.pyc

@@ -3,7 +3,7 @@ import json
 from email.utils import parseaddr
 from zope.cachedescriptors.property import Lazy
 from zope.formlib import form as formlib
-from gs.content.form.api.json.group_endpoint import GroupEndpoint
+from gs.content.form.api.json import GroupEndpoint
 from Products.GSGroup.groupInfo import groupInfo_to_anchor
 from Products.CustomUserFolder.userinfo import userInfo_to_anchor
 from gs.group.member.invite.base.invitefields import InviteFields
