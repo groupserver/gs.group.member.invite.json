@@ -1,4 +1,17 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
+##############################################################################
+#
+# Copyright © 2013 E-Democracy.org and Contributors.
+# All Rights Reserved.
+#
+# This software is subject to the provisions of the Zope Public License,
+# Version 2.1 (ZPL).  A copy of the ZPL should accompany this distribution.
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
+# WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
+# FOR A PARTICULAR PURPOSE.
+#
+##############################################################################
 import os
 from setuptools import setup, find_packages
 from version import get_version
@@ -11,34 +24,31 @@ setup(name='gs.group.member.invite.json',
     long_description=open("README.txt").read() + "\n" +
                       open(os.path.join("docs", "HISTORY.txt")).read(),
     classifiers=[
-      "Development Status :: 4 - Beta",
-      "Environment :: Web Environment",
-      "Framework :: Zope2",
-      "Intended Audience :: Developers",
-      "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-      "Natural Language :: English",
-      "Operating System :: POSIX :: Linux",
-      "Programming Language :: Python",
-      "Topic :: Software Development :: Libraries :: Python Modules",
+        'Development Status :: 5 - Production/Stable',
+        "Environment :: Web Environment",
+        "Framework :: Zope2",
+        "Intended Audience :: Developers",
+        'License :: OSI Approved :: Zope Public License',
+        "Natural Language :: English",
+        "Operating System :: POSIX :: Linux"
+        "Programming Language :: Python",
+        "Topic :: Software Development :: Libraries :: Python Modules",
       ],
     keywords='json, invite, invitation, user, profile',
     author='Bill Bushey',
     author_email='bill.bushey@e-democracy.org',
     url='http://e-democracy.org/',
-    license='other',
+    license='ZPL 2.1',
     packages=find_packages(exclude=['ez_setup']),
     namespace_packages=['gs', 'gs.group', 'gs.group.member',
-                        'gs.group.member.invite'], 
+                        'gs.group.member.invite'],
     include_package_data=True,
-    zip_safe=True,
+    zip_safe=False,
     install_requires=[
         'setuptools',
         'gs.content.form.api.json',
         'gs.group.member.invite.base',
-        # -*- Extra requirements: -*-
     ],
     entry_points="""
     # -*- Entry points: -*-
     """,)
-
-

@@ -1,3 +1,0 @@
-setuptools
-gs.content.form.api.json
-gs.group.member.invite.base
