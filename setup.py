@@ -46,8 +46,14 @@ setup(name='gs.group.member.invite.json',
     zip_safe=False,
     install_requires=[
         'setuptools',
+        'zope.browserpage',  # For the <browser:page /> ZCML element
+        'zope.cachedescriptors',
+        'zope.formlib',
         'gs.content.form.api.json',
+        'gs.group.base',  # For the marker interface
         'gs.group.member.invite.base',
+        'Products.GSGroup',
+        'Products.CustomUserFolder',
     ],
     entry_points="""
     # -*- Entry points: -*-

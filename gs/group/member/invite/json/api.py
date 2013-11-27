@@ -17,12 +17,12 @@ from email.utils import parseaddr
 from zope.cachedescriptors.property import Lazy
 from zope.formlib import form as formlib
 from gs.content.form.api.json import GroupEndpoint
-from Products.GSGroup.groupInfo import groupInfo_to_anchor
-from Products.CustomUserFolder.userinfo import userInfo_to_anchor
 from gs.group.member.invite.base.invitefields import InviteFields
 from gs.group.member.invite.base.audit import INVITE_NEW_USER, \
     INVITE_OLD_USER, INVITE_EXISTING_MEMBER
 from gs.group.member.invite.base.processor import InviteProcessor
+from Products.GSGroup.groupInfo import groupInfo_to_anchor
+from Products.CustomUserFolder.userinfo import userInfo_to_anchor
 
 PROFILE_CREATED = 0
 EXISTING_PROFILE_INVITED = 1
