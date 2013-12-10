@@ -12,6 +12,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
+from __future__ import unicode_literals
 import json
 from email.utils import parseaddr
 from zope.cachedescriptors.property import Lazy
@@ -30,8 +31,7 @@ EXISTING_MEMBER_IGNORED = 2
 
 
 class InviteUserAPI(GroupEndpoint):
-    label = u'POST data to this URL to invite a member to join this '\
-            u'group.'
+    label = 'POST data to this URL to invite a member to join this group.'
 
     def __init__(self, group, request):
         super(InviteUserAPI, self).__init__(group, request)
@@ -49,7 +49,7 @@ class InviteUserAPI(GroupEndpoint):
         assert retval
         return retval
 
-    @formlib.action(label=u'Submit', prefix='', failure='invite_user_failure')
+    @formlib.action(label='Submit', prefix='', failure='invite_user_failure')
     def invite_user_success(self, action, data):
         # Zope's regular form validation system *should* take care of checking
         # on columns and what not. So here we just have to pass data on to the
@@ -69,29 +69,29 @@ class InviteUserAPI(GroupEndpoint):
         if result == INVITE_NEW_USER:
             retval['status'] = 1
             m = []
-            m.append(u'A profile for {0} has been created, and given the '
-                     u'email address {1}.')
-            m.append(u'{0} has been sent an invitation to join {2}.')
+            m.append('A profile for {0} has been created, and given the '
+                     'email address <code>{1}</code>.')
+            m.append('{0} has been sent an invitation to join {2}.')
             m = [i.format(linked_username, addr, linked_groupname) for i in m]
             retval['message'] = m
         elif result == INVITE_OLD_USER:
             retval['status'] = 2
             m = []
-            m.append(u'Inviting the existing person with the email address '
-                     u'{0} - {1} - to join {2}.')
+            m.append('Inviting the existing person with the email address '
+                     '<code>{0}</code> ― {1} ― to join {2}.')
             m = [i.format(addr, linked_username, linked_groupname) for i in m]
             retval['message'] = m
         elif result == INVITE_EXISTING_MEMBER:
             retval['status'] = 3
             m = []
-            m.append(u'The person with the email address {0} - {1} -'
-                     u' is already a member of {2}.')
-            m.append(u'No changes to the profile of {1} have been made.')
+            m.append('The person with the email address <code>{0}</code> ― '
+                     '{1} ― is already a member of {2}.')
+            m.append('No changes to the profile of {1} have been made.')
             m = [i.format(addr, linked_username, linked_groupname) for i in m]
             retval['message'] = m
         else:
             retval['status'] = 100
-            retval['message'] = u'An unknown event occurred.'
+            retval['message'] = 'An unknown event occurred.'
 
         retval = json.dumps(retval, indent=4)
         return retval
