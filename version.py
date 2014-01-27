@@ -1,15 +1,17 @@
-version='0.98'
-release=False
+version = '2.0'
+release = False
 
-#-------------------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
 
 import commands
 import datetime
 import os
 import glob
 
+
 class CommandError(Exception):
     pass
+
 
 def execute_command(commandstring):
     status, output = commands.getstatusoutput(commandstring)
@@ -17,13 +19,14 @@ def execute_command(commandstring):
         raise CommandError
     return output
 
+
 def parse_version_from_package():
     try:
         pkginfo = os.path.join(glob.glob('*.egg-info')[0],
                                          'PKG-INFO')
     except:
         pkginfo = ''
-    
+
     version_string = ''
     if os.path.exists(pkginfo):
         for line in file(pkginfo):
@@ -33,8 +36,9 @@ def parse_version_from_package():
             version_string = '%s-dev' % version
     else:
         version_string = version
-    
+
     return version_string
+
 
 def get_version():
     try:
@@ -43,7 +47,7 @@ def get_version():
         # convert date to UTC unix timestamp, using the date command because python
         # date libraries do not stabilise till about 2.6
         timestamp = int(execute_command('date -d"%s" --utc +%%s' % commitdate))
-    
+
         # finally we have something we can use!
         dt = datetime.datetime.utcfromtimestamp(timestamp)
         datestring = dt.strftime('%Y%m%d%H%M%S')
@@ -57,6 +61,3 @@ def get_version():
 
 if __name__ == '__main__':
     print get_version()
-
-
-
