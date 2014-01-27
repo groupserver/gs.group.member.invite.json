@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright © 2013 E-Democracy.org and Contributors.
+# Copyright © 2014 E-Democracy.org and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -37,7 +37,7 @@ setup(name='gs.group.member.invite.json',
     keywords='json, invite, invitation, user, profile',
     author='Bill Bushey',
     author_email='bill.bushey@e-democracy.org',
-    url='http://e-democracy.org/',
+    url='http://groupserver.org/',
     license='ZPL 2.1',
     packages=find_packages(exclude=['ez_setup']),
     namespace_packages=['gs', 'gs.group', 'gs.group.member',
@@ -52,8 +52,8 @@ setup(name='gs.group.member.invite.json',
         'gs.content.form.api.json',
         'gs.group.base',  # For the marker interface
         'gs.group.member.invite.base',
-        'Products.GSGroup',
         'Products.CustomUserFolder',
+        'Products.GSGroup',
     ],
     entry_points="""
     # -*- Entry points: -*-
