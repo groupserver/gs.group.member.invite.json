@@ -14,7 +14,6 @@
 ##############################################################################
 from __future__ import unicode_literals
 import json
-from email.utils import parseaddr
 from zope.cachedescriptors.property import Lazy
 from zope.formlib import form as formlib
 from gs.content.form.api.json import GroupEndpoint
@@ -22,6 +21,7 @@ from gs.group.member.invite.base.invitefields import InviteFields
 from gs.group.member.invite.base.audit import INVITE_NEW_USER, \
     INVITE_OLD_USER, INVITE_EXISTING_MEMBER
 from gs.group.member.invite.base.processor import InviteProcessor
+from gs.profile.email.base import sanitise_address
 from Products.GSGroup.groupInfo import groupInfo_to_anchor
 from Products.CustomUserFolder.userinfo import userInfo_to_anchor
 
@@ -61,7 +61,7 @@ class InviteUserAPI(GroupEndpoint):
         result, userInfo = inviteProcessor.process(data)
 
         # Prep data for display
-        addrName, addr = parseaddr(data['toAddr'].strip())
+        addr = sanitise_address(data['toAddr'])
         linked_username = userInfo_to_anchor(userInfo)
         linked_groupname = groupInfo_to_anchor(self.groupInfo)
         retval = {}

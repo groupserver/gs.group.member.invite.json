@@ -52,6 +52,7 @@ setup(name='gs.group.member.invite.json',
         'gs.content.form.api.json',
         'gs.group.base',  # For the marker interface
         'gs.group.member.invite.base',
+        'gs.profile.email.base',
         'Products.CustomUserFolder',
         'Products.GSGroup',
     ],
