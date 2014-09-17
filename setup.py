@@ -21,8 +21,8 @@ version = get_version()
 setup(name='gs.group.member.invite.json',
     version=version,
     description="Via JSON, send an invitation to join a group in GroupServer",
-    long_description=open("README.txt").read() + "\n" +
-                      open(os.path.join("docs", "HISTORY.txt")).read(),
+    long_description=open("README.rst").read() + "\n" +
+                      open(os.path.join("docs", "HISTORY.rst")).read(),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         "Environment :: Web Environment",
